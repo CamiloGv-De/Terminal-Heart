@@ -54,11 +54,47 @@
       .wrap{
         width:100%;
         margin: 0 auto;
-        aspect-ratio: 9 / 16;
-        max-height: 94vh;
+        /*aspect-ratio: 9 / 16;
+        max-height: 94vh;*/
         display:grid;
         align-content:start;
       }
+
+        .actions{
+            gap:10px;
+            margin-bottom: 8px;
+        }
+
+        .iconbtn{
+            padding: 10px 12px;
+            border-radius: 14px;
+            font-size: 14px;
+        }
+        h1{
+            margin: 2px 0 10px;
+            font-size: 34px;
+        }
+
+        .field, .btn{
+            padding: 16px 14px;
+            border-radius: 14px;
+            font-size: 16px;
+        }
+
+        .term{
+            margin-top: 10px;
+            padding: 14px 12px 16px;
+            min-height: 52vh;
+        }
+
+        pre{
+            font-size: 14px;
+            line-height: 1.00;
+        }
+
+        .hint{
+            display:none;
+        }
     }
 
     /* Top actions (sin el texto de terminal) */
@@ -186,6 +222,9 @@
       font-weight:600;
       user-select:none;
     }
+    @supports (height: 100dvh) {
+    body { min-height: 100dvh; }
+    }
   </style>
 </head>
 
@@ -281,29 +320,81 @@
   // -------------------------
   // Latido (re-render)
   // -------------------------
-  let beatTimer = null;
-  let currentName = "";
-  let currentCols = 60;
-  let currentRows = 27;
+  //let beatTimer = null;
+  //let currentName = "";
+  //let currentCols = 60;
+  //let currentRows = 27;
 
-  function stopHeartbeat(){
-    if (beatTimer) clearInterval(beatTimer);
-    beatTimer = null;
-  }
+  //function stopHeartbeat(){
+  //  if (beatTimer) clearInterval(beatTimer);
+  //  beatTimer = null;
+  //}
 
-  function startHeartbeat(){
-    stopHeartbeat();
-    let t = 0;
+  //function startHeartbeat(){
+  //  stopHeartbeat();
+  //  let t = 0;
 
     // Frecuencia de latido en ms (velocidad)
-    beatTimer = setInterval(() => {
-      t += 0.16;
+    //beatTimer = setInterval(() => {
+    //  t += 0.16;
 
-      const pulse = 1 + 0.045*Math.sin(t*2.2) + 0.018*Math.sin(t*6.1);
-      const lines = buildHeartLines(currentName, currentCols, currentRows, pulse);
-      out.textContent = lines.join("\n") + "\n";
-    }, 75);
-  }
+      //const pulse = 1 + 0.045*Math.sin(t*2.2) + 0.018*Math.sin(t*6.1);
+      //const lines = buildHeartLines(currentName, currentCols, currentRows, pulse);
+      //out.textContent = lines.join("\n") + "\n";
+    //}, 75);
+  //}
+
+// -------------------------
+// Latido natural (lub-dub) con requestAnimationFrame
+// -------------------------
+let rafId = null;
+let beatStart = 0;
+
+// Ajusta aquí el ritmo del corazón (BPM)
+const BPM = 72;                 // 60–80 típico
+const BEAT_MS = 60000 / BPM;    // ms por latido
+
+function stopHeartbeat(){
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+}
+
+// Pulso "lub-dub": dos picos y una pausa (más natural que un seno continuo)
+function lubDubPulse(phase01){
+  // phase01: 0..1 dentro de un latido
+  // Usamos 2 picos gaussianos (uno fuerte, uno pequeño)
+  const g = (x, mu, s) => Math.exp(-0.5 * ((x - mu) / s) ** 2);
+
+  const lub = g(phase01, 0.12, 0.045);   // golpe fuerte
+  const dub = g(phase01, 0.30, 0.040);   // segundo golpe (más pequeño)
+
+  // Un poquito de “respiración” casi imperceptible
+  const breath = 0.08 * Math.sin(phase01 * Math.PI * 2);
+
+  // Base + amplitud (ajusta la sensación del latido)
+  const amp = 0.060; // 0.045–0.075
+  const p = 1 + amp * (1.00 * lub + 0.55 * dub) + 0.004 * breath;
+
+  return p;
+}
+
+function startHeartbeat(){
+  stopHeartbeat();
+  beatStart = performance.now();
+
+  const tick = (now) => {
+    const elapsed = now - beatStart;
+    const phase01 = (elapsed % BEAT_MS) / BEAT_MS;
+
+    const pulse = lubDubPulse(phase01);
+    const lines = buildHeartLines(currentName, currentCols, currentRows, pulse);
+    out.textContent = lines.join("\n") + "\n";
+
+    rafId = requestAnimationFrame(tick);
+  };
+
+  rafId = requestAnimationFrame(tick);
+}
 
   // -------------------------
   // Fullscreen
@@ -365,8 +456,8 @@
   // -------------------------
   function computeGrid(){
     const isMobile = window.matchMedia("(max-width: 540px)").matches;
-    currentCols = isMobile ? 62 : 60;
-    currentRows = isMobile ? 28 : 27;
+    currentCols = isMobile ? 66 : 60;
+    currentRows = isMobile ? 30 : 27;
   }
   window.addEventListener("resize", computeGrid);
   computeGrid();
