@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07070a" />
+  <title>Corazón con…</title>
+
+  <style>
+    :root{
+      --bg:#07070a;
+      --fg: rgba(255,120,120,.95);
+      --fg2: rgba(255,120,120,.70);
+      --stroke: rgba(255,120,120,.55);
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --glow: 0 0 18px rgba(255,80,80,.25), 0 0 40px rgba(255,80,80,.12);
+      --card: rgba(0,0,0,.16);
+      --cardStroke: rgba(255,120,120,.18);
+      --radius: 16px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body { height:100%; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(900px 500px at 50% 35%, rgba(255,50,90,.10), transparent 60%),
+        radial-gradient(900px 650px at 50% 70%, rgba(120,40,255,.08), transparent 65%),
+        var(--bg);
+      color:var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      overflow:hidden;
+    }
+
+    /* Contenedor general (desktop) */
+    .stage{
+      width:min(860px, 94vw);
+      padding: max(18px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    }
+
+    /* Mobile: modo 9:16 */
+    @media (max-width: 540px){
+      body{ place-items:stretch; overflow:auto; }
+      .stage{
+        width:100%;
+        min-height:100vh;
+        display:grid;
+        align-content:center;
+        padding: max(18px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+      }
+      .wrap{
+        width:100%;
+        margin: 0 auto;
+        aspect-ratio: 9 / 16;
+        max-height: 94vh;
+        display:grid;
+        align-content:start;
+      }
+    }
+
+    /* Top actions (sin el texto de terminal) */
+    .actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-bottom:10px;
+    }
+
+    .iconbtn{
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.08);
+      color:var(--fg);
+      padding:9px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      box-shadow: var(--glow);
+      font-weight:700;
+      letter-spacing:.3px;
+      user-select:none;
+      touch-action: manipulation;
+    }
+    .iconbtn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .wrap{
+      width:min(760px, 100%);
+      margin:0 auto;
+      padding: 10px 0 0;
+    }
+
+    h1{
+      margin:0 0 14px;
+      text-align:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-weight:800;
+      font-size: clamp(28px, 4.6vw, 44px);
+      color:var(--fg);
+      text-shadow: var(--glow);
+      letter-spacing:.2px;
+    }
+
+    .panel{
+      display:grid;
+      gap:10px;
+      justify-items:center;
+      margin-bottom:12px;
+    }
+
+    .field, .btn{
+      width:min(560px, 100%);
+      background:transparent;
+      border:1px solid var(--stroke);
+      color:var(--fg);
+      padding:14px 14px;
+      border-radius:12px;
+      outline:none;
+      box-shadow: var(--glow);
+      font-size: 15px;
+    }
+    .field::placeholder{ color: rgba(255,120,120,.55); }
+
+    .btn{
+      cursor:pointer;
+      text-transform:uppercase;
+      letter-spacing:1.5px;
+      font-weight:800;
+      position:relative;
+    }
+    .btn .cursor{
+      display:inline-block;
+      width:10px;
+      margin-left:6px;
+      animation: blink 1s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity:0; } }
+
+    .term{
+      margin:14px auto 0;
+      width:min(680px, 100%);
+      min-height: 300px;
+      padding: 14px 12px;
+      border-radius: var(--radius);
+      color:var(--fg);
+      background: var(--card);
+      border:1px solid var(--cardStroke);
+      box-shadow: var(--shadow);
+      overflow:auto;
+    }
+    @media (max-width: 540px){
+      .term{ min-height: 360px; }
+    }
+
+    .line{
+      margin:0 0 10px;
+      color:var(--fg2);
+      letter-spacing:.2px;
+      user-select:none;
+    }
+
+    pre{
+      margin:0;
+      white-space:pre;
+      line-height:1.03;
+      font-size: clamp(11px, 2.6vw, 13px);
+      text-shadow: var(--glow);
+    }
+
+    .footer{
+      margin-top:10px;
+      color:rgba(255,120,120,.90);
+      user-select:none;
+    }
+
+    /* Fullscreen: agranda y centra */
+    .fullscreen .stage{
+      width: min(980px, 98vw);
+      padding: max(18px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    }
+    .hint{
+      text-align:center;
+      margin-top:12px;
+      color: rgba(255,120,120,.35);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-weight:600;
+      user-select:none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stage" id="stage">
+    <!-- Quitado el texto tipo terminal; solo dejamos botones -->
+    <div class="actions">
+      <button class="iconbtn" id="fs">Pantalla completa</button>
+      <button class="iconbtn" id="copy">Copiar resultado</button>
+    </div>
+
+    <div class="wrap">
+      <h1>Corazón con…</h1>
+
+      <div class="panel">
+        <input id="name" class="field" placeholder="Tu nombre..." maxlength="24" autocomplete="off" />
+        <button id="go" class="btn">
+          FORMAR CORAZÓN <span class="cursor"></span>
+        </button>
+      </div>
+
+      <div class="term">
+        <div id="status" class="line"></div>
+        <pre id="out"></pre>
+        <div id="msg" class="footer"></div>
+      </div>
+
+      <div class="hint">Tip: Enter para formar • F para fullscreen</div>
+    </div>
+  </div>
+
+<script>
+  const stage  = document.getElementById("stage");
+  const nameEl = document.getElementById("name");
+  const btn    = document.getElementById("go");
+  const status = document.getElementById("status");
+  const out    = document.getElementById("out");
+  const msg    = document.getElementById("msg");
+  const fsBtn  = document.getElementById("fs");
+  const copyBtn= document.getElementById("copy");
+
+  // -------------------------
+  // Corazón (máscara)
+  // -------------------------
+  function insideHeart(x, y){
+    const a = x*x + y*y - 1;
+    return (a*a*a - x*x*y*y*y) <= 0;
+  }
+
+  function buildHeartLines(text, cols, rows, pulse){
+    const t = (text || "Amor").replace(/\s+/g, "");
+    let idx = 0;
+    const lines = [];
+
+    const W = 2.7 * (pulse || 1);
+    const H = 2.5 * (pulse || 1);
+
+    for (let r = 0; r < rows; r++){
+      let line = "";
+      for (let c = 0; c < cols; c++){
+        const x = (c/(cols-1))*W - (W/2);
+        const y = (H/2) - (r/(rows-1))*H;
+
+        if (insideHeart(x, y)){
+          line += t[idx % t.length];
+          idx++;
+        } else {
+          line += " ";
+        }
+      }
+      lines.push(line.replace(/\s+$/g, ""));
+    }
+    return lines;
+  }
+
+  // -------------------------
+  // Typewriter por letra
+  // -------------------------
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  async function typewriter(fullText, delayMs){
+    out.textContent = "";
+    for (let i = 0; i < fullText.length; i++){
+      out.textContent += fullText[i];
+      if (fullText[i] === "\n") {
+        await sleep(Math.max(10, delayMs - 15));
+      } else {
+        await sleep(delayMs);
+      }
+    }
+  }
+
+  // -------------------------
+  // Latido (re-render)
+  // -------------------------
+  let beatTimer = null;
+  let currentName = "";
+  let currentCols = 60;
+  let currentRows = 27;
+
+  function stopHeartbeat(){
+    if (beatTimer) clearInterval(beatTimer);
+    beatTimer = null;
+  }
+
+  function startHeartbeat(){
+    stopHeartbeat();
+    let t = 0;
+
+    // Frecuencia de latido en ms (velocidad)
+    beatTimer = setInterval(() => {
+      t += 0.16;
+
+      const pulse = 1 + 0.045*Math.sin(t*2.2) + 0.018*Math.sin(t*6.1);
+      const lines = buildHeartLines(currentName, currentCols, currentRows, pulse);
+      out.textContent = lines.join("\n") + "\n";
+    }, 75);
+  }
+
+  // -------------------------
+  // Fullscreen
+  // -------------------------
+  function isFullscreen(){
+    return !!document.fullscreenElement;
+  }
+
+  async function toggleFullscreen(){
+    try{
+      if (!isFullscreen()){
+        await stage.requestFullscreen({ navigationUI: "hide" });
+        document.body.classList.add("fullscreen");
+        fsBtn.textContent = "Salir fullscreen";
+      } else {
+        await document.exitFullscreen();
+        document.body.classList.remove("fullscreen");
+        fsBtn.textContent = "Pantalla completa";
+      }
+    }catch(e){
+      console.warn(e);
+    }
+  }
+
+  fsBtn.addEventListener("click", toggleFullscreen);
+  document.addEventListener("fullscreenchange", () => {
+    if (!isFullscreen()){
+      document.body.classList.remove("fullscreen");
+      fsBtn.textContent = "Pantalla completa";
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "f") toggleFullscreen();
+  });
+
+  // -------------------------
+  // Copiar al portapapeles
+  // -------------------------
+  copyBtn.addEventListener("click", async () => {
+    try{
+      const text = [
+        status.textContent || "",
+        out.textContent || "",
+        msg.textContent || ""
+      ].filter(Boolean).join("\n");
+      await navigator.clipboard.writeText(text.trim());
+      copyBtn.textContent = "¡Copiado!";
+      setTimeout(() => copyBtn.textContent = "Copiar resultado", 900);
+    }catch(e){
+      console.warn(e);
+      copyBtn.textContent = "No se pudo copiar";
+      setTimeout(() => copyBtn.textContent = "Copiar resultado", 900);
+    }
+  });
+
+  // -------------------------
+  // Ejecutar
+  // -------------------------
+  function computeGrid(){
+    const isMobile = window.matchMedia("(max-width: 540px)").matches;
+    currentCols = isMobile ? 62 : 60;
+    currentRows = isMobile ? 28 : 27;
+  }
+  window.addEventListener("resize", computeGrid);
+  computeGrid();
+
+  async function run(){
+    stopHeartbeat();
+
+    const raw = nameEl.value.trim();
+    const who = raw || "Sofía";
+    currentName = who;
+
+    btn.disabled = true;
+    status.textContent = "♥ Formando corazón... ♥";
+    msg.textContent = "";
+    out.textContent = "";
+
+    await sleep(250);
+
+    const lines = buildHeartLines(who, currentCols, currentRows, 1);
+    const full = lines.join("\n") + "\n";
+
+    const isMobile = window.matchMedia("(max-width: 540px)").matches;
+    const delay = isMobile ? 6 : 5;
+
+    await typewriter(full, delay);
+
+    msg.textContent = `Te amo, ${who}! ♥`;
+
+    startHeartbeat();
+    btn.disabled = false;
+  }
+
+  btn.addEventListener("click", run);
+  nameEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") run();
+  });
+
+  setTimeout(() => nameEl.focus(), 150);
+</script>
+</body>
+</html>
