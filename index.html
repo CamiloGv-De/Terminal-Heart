@@ -85,11 +85,12 @@
             margin-top: 10px;
             padding: 14px 12px 16px;
             min-height: 52vh;
+            overflow-x: hidden;
         }
 
         pre{
-            font-size: 14px;
-            line-height: 1.00;
+            font-size: 12px;
+            line-height: 1.02;
         }
 
         .hint{
@@ -232,7 +233,7 @@
   <div class="stage" id="stage">
     <!-- Quitado el texto tipo terminal; solo dejamos botones -->
     <div class="actions">
-      <button class="iconbtn" id="fs">Pantalla completa</button>
+      <!-- <button class="iconbtn" id="fs">Pantalla completa</button> -->
       <button class="iconbtn" id="copy">Copiar resultado</button>
     </div>
 
@@ -252,7 +253,7 @@
         <div id="msg" class="footer"></div>
       </div>
 
-      <div class="hint">Tip: Enter para formar • F para fullscreen</div>
+      <div class="hint">Tip: Enter para formar</div>
     </div>
   </div>
 
@@ -263,7 +264,7 @@
   const status = document.getElementById("status");
   const out    = document.getElementById("out");
   const msg    = document.getElementById("msg");
-  const fsBtn  = document.getElementById("fs");
+  //const fsBtn  = document.getElementById("fs");
   const copyBtn= document.getElementById("copy");
 
   // -------------------------
@@ -399,7 +400,7 @@ function startHeartbeat(){
   // -------------------------
   // Fullscreen
   // -------------------------
-  function isFullscreen(){
+  /*function isFullscreen(){
     return !!document.fullscreenElement;
   }
 
@@ -429,7 +430,7 @@ function startHeartbeat(){
 
   document.addEventListener("keydown", (e) => {
     if (e.key.toLowerCase() === "f") toggleFullscreen();
-  });
+  });*/
 
   // -------------------------
   // Copiar al portapapeles
@@ -456,8 +457,8 @@ function startHeartbeat(){
   // -------------------------
   function computeGrid(){
     const isMobile = window.matchMedia("(max-width: 540px)").matches;
-    currentCols = isMobile ? 66 : 60;
-    currentRows = isMobile ? 30 : 27;
+    currentCols = isMobile ? 52 : 60;
+    currentRows = isMobile ? 24 : 27;
   }
   window.addEventListener("resize", computeGrid);
   computeGrid();
